@@ -98,9 +98,12 @@ public class MoveToTargetUI : MonoBehaviour
 
     private async UniTask PlayLandingRotationAsync(LandingPhaseConfig phase)
     {
-        await PlayRotationAsync(0, phase.FirstStepRatio, phase.Ease);
-        await PlayLandingStepAsync(phase.SecondaryRotation, phase.SecondStepRatio, phase.Ease);
-        await PlayLandingStepAsync(phase.FinalRotation,     phase.FinalStepRatio,  phase.Ease);
+        await PlayRotationAsync(0, phase.StepRatio, phase.Ease);
+        await PlayLandingStepAsync(phase.SecondaryRotation, phase.StepRatio, phase.Ease);
+        await PlayRotationAsync(0, phase.StepRatio, phase.Ease);
+        await PlayLandingStepAsync(phase.TargetRotation, phase.StepRatio, phase.Ease);
+        await PlayRotationAsync(0, phase.StepRatio, phase.Ease);
+        ApplyLandingPivot(phase.FinalRotation);
     }
 
     private async UniTask PlayLandingStepAsync(float rotation, float ratio, Ease ease)
@@ -193,7 +196,6 @@ public class MoveToTargetUI : MonoBehaviour
     private void CacheDefaultPivot()
     {
         _defaultPivot = _movingObject.pivot;
-        Debug.LogError(_defaultPivot);
         _hasDefaultPivot = true;
     }
 
@@ -203,7 +205,6 @@ public class MoveToTargetUI : MonoBehaviour
         {
             return;
         }
-        Debug.LogError(_defaultPivot);
         PreserveCornerWhileChangingPivot(_defaultPivot, 0);
     }
 }
@@ -215,7 +216,7 @@ public class MoveToTargetUIConfig
     public BasePhaseConfig    PressPhase   = new(0.2f, Ease.InQuad, new Vector3(1.12f,  0.82f,      1f), 0f);
     public BasePhaseConfig    LiftPhase    = new(0.35f, Ease.Linear, new Vector3(0.82f, 1.12f, 1f), -12f);
     public BasePhaseConfig    DropPhase    = new(0.3f, Ease.Linear, new Vector3(1f,  1f,      1f), 10f);
-    public LandingPhaseConfig LandingPhase = new(0.15f, Ease.Linear, Vector3.one, -8f, 6f, 0f, 0.35f, 0.3f, 0.35f);
+    public LandingPhaseConfig LandingPhase = new(0.15f, Ease.Linear, Vector3.one, -8f, 6f, 0f, 0.2f);
 }
 
 [Serializable]
@@ -244,11 +245,9 @@ public class LandingPhaseConfig : BasePhaseConfig
 {
     public float SecondaryRotation;
     public float FinalRotation;
-    public float FirstStepRatio = 1f;
-    public float SecondStepRatio;
-    public float FinalStepRatio;
     public Vector2 LeftBottomPivot = new(0f, 0f);
     public Vector2 RightBottomPivot = new(1f, 0f);
+    public float StepRatio;
 
     public LandingPhaseConfig()
     {
@@ -261,14 +260,11 @@ public class LandingPhaseConfig : BasePhaseConfig
         float targetRotation,
         float secondaryRotation,
         float finalRotation,
-        float firstStepRatio,
-        float secondStepRatio,
-        float finalStepRatio) : base(durationRatio, ease, targetScale, targetRotation)
+        float stepRatio
+        ) : base(durationRatio, ease, targetScale, targetRotation)
     {
         SecondaryRotation = secondaryRotation;
-        FinalRotation = finalRotation;
-        FirstStepRatio = firstStepRatio;
-        SecondStepRatio = secondStepRatio;
-        FinalStepRatio = finalStepRatio;
+        FinalRotation     = finalRotation;
+        StepRatio         = stepRatio;
     }
 }
